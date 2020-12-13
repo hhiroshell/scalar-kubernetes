@@ -26,7 +26,7 @@ spec:
         - "-u"
         - "{{ .Values.schemaLoading.username }}"
         - "-p"
-        - "{{ .Values.schemaLoading.password }}"
+        - "$(DB_PASSWORD)"
         {{- if eq .Values.schemaLoading.database "cassandra" }}
         - "--cassandra"
         - "-n"
@@ -38,5 +38,15 @@ spec:
         - "-r"
         - "{{ .Values.schemaLoading.cosmosBaseResourceUnit }}"
         {{- end }}
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+            {{- if .Values.schemaLoading.existingSecret }}
+              name: {{ .Values.schemaLoading.existingSecret }}
+            {{- else }}
+              name: {{ include "schema-loading.fullname" . }}
+            {{- end }}
+              key: db-password
       restartPolicy: Never
   backoffLimit: 0
